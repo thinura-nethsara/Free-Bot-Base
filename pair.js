@@ -156,7 +156,7 @@ function debouncedSaveSession(sessionId, sessionPath) {
 
 async function Pair(number, res = null) {
     const xnumber = number.replace(/[^0-9]/g, '');
-    const sessionId = `dina_${xnumber}`;
+    const sessionId = `nexion_${xnumber}`;
     const sessionPath = path.join(SESSION_BASE_PATH, sessionId);
 
     if (activeSockets[sessionId]) {
