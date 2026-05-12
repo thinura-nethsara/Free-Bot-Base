@@ -1,4 +1,5 @@
 const config = require('../config')
+const { generateButtonMessage } = require('./pair');
 const { cmd, commands } = require('../command')
 
 cmd({
