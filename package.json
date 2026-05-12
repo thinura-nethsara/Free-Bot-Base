@@ -1,7 +1,7 @@
 {
-  "name": "dina-bot",
+  "name": "VISHU X MINI",
   "version": "1.0.0",
-  "description": "Multi-session WhatsApp Bot with Plugin System",
+  "description": "Multi-session WhatsApp Bot",
   "main": "pair.js",
   "scripts": {
     "start": "node pair.js",
