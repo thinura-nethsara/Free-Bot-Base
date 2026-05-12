@@ -1,6 +1,9 @@
 const config = require('../config')
 const { cmd, commands } = require('../command')
+const axios = require('axios')
 
+
+//==================================================================Ping Cmd eka=============================================================
 cmd({
   pattern: "ping",
   alias: ["speed"],
@@ -100,6 +103,112 @@ END:VCARD`
 });
 
 
+//======================================================apk download cmd eka==================================================================================
 
 
+cmd({
+    pattern: "apk",
+    alias: ["apkdown", "apkdl", "getapk"],
+    desc: "Search and download APK files",
+    category: "download",
+    use: ".apk <app name>",
+    filename: __filename
+},
+async (conn, mek, m, { from, reply, q, args, isOwner, pushname }) => {
+    try {
+        if (!q) {
+            return reply(`❌ *Please provide an app name!*\n\nExample: .apk whatsapp`);
+        }
 
+        const apiUrl = `https://saviya-kolla-api.koyeb.app/download/apk?q=${encodeURIComponent(q)}`;
+        const { data } = await axios.get(apiUrl);
+
+        if (!data || !data.result) {
+            return reply(`❌ *APK not found!*\nPlease try another app name.`);
+        }
+
+        const result = data.result;
+
+        const caption = `◉ *APK DOWNLOADER* ◉
+
+╭━━━━━━━━━━━━━━━━━●◌
+│ ■ *App:* ${result.name}
+│ ■ *Package:* ${result.package}
+│ ■ *Size:* ${result.size}
+│ ■ *Rating:* ${result.rating || 'N/A'}
+╰━━━━━━━━━━━━━━━━━●◌
+
+> *© Powered by Nexus Mini Bot*`;
+
+        // Send with button for download
+        const buttonMessage = {
+            text: caption,
+            footer: 'Tap the button below to download',
+            buttons: [
+                {
+                    buttonId: `${config.PREFIX}apkdownload ${result.name}`,
+                    buttonText: { displayText: '⬇️ DOWNLOAD APK' },
+                    type: 1
+                }
+            ],
+            headerType: 1
+        };
+
+        // Send app icon if available
+        if (result.icon) {
+            await conn.sendMessage(from, {
+                image: { url: result.icon },
+                caption: caption,
+                buttons: [
+                    {
+                        buttonId: `${config.PREFIX}apkdownload ${result.name}`,
+                        buttonText: { displayText: '⬇️ DOWNLOAD APK' },
+                        type: 1
+                    }
+                ]
+            }, { quoted: m });
+        } else {
+            await conn.sendMessage(from, buttonMessage, { quoted: m });
+        }
+
+    } catch (error) {
+        console.error('APK command error:', error);
+        reply(`❌ *Error:* ${error.message || 'Failed to fetch APK info'}`);
+    }
+});
+
+// Download Button Handler
+cmd({
+    pattern: "apkdownload",
+    desc: "Download APK file",
+    category: "download",
+    filename: __filename
+},
+async (conn, mek, m, { from, reply, args }) => {
+    try {
+        const apkName = args.join(' ');
+        if (!apkName) {
+            return reply('❌ Invalid request');
+        }
+
+        const apiUrl = `https://saviya-kolla-api.koyeb.app/download/apk?q=${encodeURIComponent(apkName)}`;
+        const { data } = await axios.get(apiUrl);
+        const result = data.result;
+
+        if (!result || !result.dllink) {
+            return reply('❌ Download link not available');
+        }
+
+        // Send as document (APK file)
+        await conn.sendMessage(from, {
+            document: { url: result.dllink },
+            mimetype: 'application/vnd.android.package-archive',
+            fileName: `${result.name.replace(/[^a-zA-Z0-9]/g, '_')}.apk`,
+            caption: `✅ *Download Ready!*\n\n📱 *App:* ${result.name}\n📦 *Size:* ${result.size}\n\n> *Powered by Nexus Mini Bot*`
+        }, { quoted: m });
+
+    } catch (error) {
+        console.error('APK Download error:', error);
+        reply(`❌ *Download Failed!*\n${error.message || 'Please try again later'}`);
+    }
+});
